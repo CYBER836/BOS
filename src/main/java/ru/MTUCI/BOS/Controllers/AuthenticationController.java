@@ -49,7 +49,7 @@ public class AuthenticationController {
 
         String token = jwtUtil.generateToken(userService.loadUserByUsername(user.getUsername()));
 
-        return ResponseEntity.status(200).body("Регистрация пройдена, JWT: " + token);
+        return ResponseEntity.status(200).body("Регистрация пройдена, Токен: " + token);
     }
 
     @PostMapping("/login")
@@ -70,6 +70,6 @@ public class AuthenticationController {
         }
 
         String token = jwtUtil.generateToken(userService.loadUserByUsername(user.getUsername()));
-        return ResponseEntity.status(200).body("Логин пройден, JWT: " + token);
+        return ResponseEntity.status(200).body("Логин пройден, Токен: " + token);
     }
 }

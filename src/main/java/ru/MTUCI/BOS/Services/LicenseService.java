@@ -34,17 +34,17 @@ public class LicenseService{
 
         Product product = productService.getProductById(licenseRequest.getProductId());
         if(product == null){
-            throw new IllegalArgumentException("Product not found");
+            throw new IllegalArgumentException("Product не найден");
         }
 
         User user = userService.getUserById(licenseRequest.getUserId());
         if(user == null){
-            throw new IllegalArgumentException("User not found");
+            throw new IllegalArgumentException("User не найден");
         }
 
         LicenseType licenseType = licenseTypeService.getLicenseTypeById(licenseRequest.getLicenseTypeId());
         if(licenseType == null){
-            throw new IllegalArgumentException("License type not found");
+            throw new IllegalArgumentException("License type не найдена");
         }
 
         // Генерация кода sha256
@@ -66,7 +66,6 @@ public class LicenseService{
         license.setProduct(product);
         licenseRepository.save(license);
 
-        // Сохранить историю
         LicenseHistory licenseHistory = new LicenseHistory(license, user, "CREATED", new Date(), "License created");
         licenseHistoryService.saveLicenseHistory(licenseHistory);
 
@@ -85,22 +84,19 @@ public class LicenseService{
             throw new IllegalArgumentException("Пользователь не найден");
         }
 
-        // Если валидно
         validateActivation(license, device, login);
 
-        // То обновляем
         if(license.getFirstActivationDate() == null){
             updateLicenseForActivation(license, user);
         }
 
-        // То создать связь
         createDeviceLicense(license, device);
 
-        // История
+
         LicenseHistory licenseHistory = new LicenseHistory(license, license.getOwner(), "ACTIVATED", new Date(), "License activated");
         licenseHistoryService.saveLicenseHistory(licenseHistory);
 
-        // Тикет
+
         return generateTicket(license, device);
     }
 
@@ -108,17 +104,17 @@ public class LicenseService{
         License license = licenseRepository.getLicensesByCode(code);
 
         if(license == null){
-            throw new IllegalArgumentException("License not found");
+            throw new IllegalArgumentException("License не найдена");
         }
 
         DeviceLicense deviceLicense = deviceLicenseService.getDeviceLicenseByDeviceIdAndLicenseId(device.getId(), license.getId());
 
         if(deviceLicense == null){
-            throw new IllegalArgumentException("License for this device not found");
+            throw new IllegalArgumentException("Лицензия для этого устройства не найдена");
         }
 
         if (license.getIsBlocked()){
-            throw new IllegalArgumentException("License is blocked");
+            throw new IllegalArgumentException("License заблокирована");
         }
 
         return license;
@@ -128,36 +124,31 @@ public class LicenseService{
 
         License license = licenseRepository.getLicensesByCode(licenseCode);
         if (license == null) {
-            throw new IllegalArgumentException("License not found");
+            throw new IllegalArgumentException("License не найдена");
         }
 
-        // Проверка на заблокированность
         if (license.getIsBlocked()) {
             throw new IllegalArgumentException("Лицензия заблокирована");
         }
 
-        // Проверка на активацию
         if (license.getFirstActivationDate() == null) {
             throw new IllegalArgumentException("Лицензия не активирована");
         }
 
-        // Проверка остатка времени до конца лицензии
         long currentTimeMillis = System.currentTimeMillis();
         long remainingTimeMillis = license.getEndingDate().getTime() - currentTimeMillis;
 
-        if (remainingTimeMillis > 1 * 60 * 60 * 1000) { // 1 час в миллисекундах
+        if (remainingTimeMillis > 1 * 60 * 60 * 1000) {
             throw new IllegalArgumentException("Лицензию нельзя обновить: до истечения срока лицензии осталось более 1 часа");
         }
 
-        // Обновление срока действия лицензии
         license.setEndingDate(new Date(license.getEndingDate().getTime() + license.getDuration()));
         licenseRepository.save(license);
 
-        // История
+
         LicenseHistory licenseHistory = new LicenseHistory(license, license.getOwner(), "UPDATED", new Date(), "License updated");
         licenseHistoryService.saveLicenseHistory(licenseHistory);
 
-        // Тикет
         return generateTicket(license, deviceRepository.findDeviceByMacAddress(macAddress));
     }
 

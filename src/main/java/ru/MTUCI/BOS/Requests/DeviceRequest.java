@@ -9,10 +9,10 @@ import lombok.Setter;
 @Setter
 public class DeviceRequest {
 
-    @NotBlank(message = "Device name cannot be empty")
+    @NotBlank(message = "Название устройства не может быть пустым")
     private String deviceName;
 
-    @NotBlank(message = "Mac address cannot be empty")
+    @NotBlank(message = "MАС адрес не может быть пустым")
     private String macAddress;
 
     private Long userId;

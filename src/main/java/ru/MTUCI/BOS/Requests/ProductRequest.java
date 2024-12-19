@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class ProductRequest {
 
-    @NotBlank(message = "Name cannot be empty")
+    @NotBlank(message = "Название не может быть пустым")
     private String name;
 
 

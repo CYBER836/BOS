@@ -43,9 +43,9 @@ public class ActivationController {
 
             return ResponseEntity.status(200).body("Лицензия успешно активирована: " + ticket.toString());
         } catch (IllegalArgumentException e){
-            return ResponseEntity.status(400).body("Ошибка валидации: " + e.getMessage());
+            return ResponseEntity.status(400).body("Ошибка: " + e.getMessage());
         } catch (Exception e){
-            return ResponseEntity.status(500).body("Внутренняя ошибка сервера:" + e.getMessage());
+            return ResponseEntity.status(500).body("Ошибка сервера:" + e.getMessage());
         }
     }
 }
