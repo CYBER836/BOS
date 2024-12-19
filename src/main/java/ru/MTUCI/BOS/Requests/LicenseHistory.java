@@ -45,6 +45,4 @@ public class LicenseHistory {
         this.description = description;
     }
 
-    public LicenseHistory() {
-    }
 }

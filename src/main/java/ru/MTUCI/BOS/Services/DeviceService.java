@@ -12,7 +12,7 @@ import ru.MTUCI.BOS.Repositories.UserRepository;
 
 import java.util.List;
 
-//TODO: 1. Пересмотреть логику обновления пользователя устройства ✅
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class DeviceService {
         Device device = deviceRepository.getDeviceByMacAddress(activationRequest.getMacAddress());
         if (device == null) {
             device = new Device();
-            device.setMacAddress(activationRequest.getMacAddress());  // TODO: 1 переделана логика метода
+            device.setMacAddress(activationRequest.getMacAddress());
             device.setUser(user);
         } else if (!device.getUser().equals(user)) {
             throw new IllegalArgumentException("Устройство зарегистрировано другим пользователем");

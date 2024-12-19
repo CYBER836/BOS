@@ -14,8 +14,6 @@ import ru.MTUCI.BOS.Services.LicenseService;
 
 import java.util.Objects;
 
-//TODO: 1. Убрать лишние проверки ✅
-
 @RestController
 @RequestMapping("/license")
 @RequiredArgsConstructor

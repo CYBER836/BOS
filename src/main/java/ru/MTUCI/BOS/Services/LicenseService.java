@@ -50,7 +50,7 @@ public class LicenseService{
         // Генерация кода sha256
         String code = generateLicenseCode(licenseRequest);
 
-        // Создать лиценщию и сохранить
+        // Создание лицензии
         License license = new License();
         license.setCode(code);
         license.setUser(null); //
@@ -90,7 +90,7 @@ public class LicenseService{
 
         // То обновляем
         if(license.getFirstActivationDate() == null){
-            updateLicenseForActivation(license, user); // TODO: 2 добавлена замена id владельца лицензии
+            updateLicenseForActivation(license, user);
         }
 
         // То создать связь
@@ -145,7 +145,6 @@ public class LicenseService{
         long currentTimeMillis = System.currentTimeMillis();
         long remainingTimeMillis = license.getEndingDate().getTime() - currentTimeMillis;
 
-        // TODO чтобы нельзя было накручивать себе активации
         if (remainingTimeMillis > 1 * 60 * 60 * 1000) { // 1 час в миллисекундах
             throw new IllegalArgumentException("Лицензию нельзя обновить: до истечения срока лицензии осталось более 1 часа");
         }
@@ -179,14 +178,8 @@ public class LicenseService{
     }
 
     private void validateActivation(License license, Device device, String login) {
-        //        System.out.println("Ожидаемый пользователь для лицухи: " + license.getUser().getId() + "\n" + "Пользователь активирует с id:" + user.getId());
-        //        if(!(license.getUser().getId().equals(user.getId()))){
-        //            throw new IllegalArgumentException("Неправильный пользователь");
-        //        }
-
         User user = userService.findUserByLogin(login);
-        // Верхняя проверка не имеет смысла так как: для того чтобы два юзера активировали одно лицензию нужен список из юзеров в столбце user_id,
-        // и еще если сравнивать владельца с юзером из столбца user_id то от верхнех проверки нет смысла
+
         if(license.getUser() != null){ // И теперь спереть лицуху не получится
             if(!(license.getUser().getId().equals(user.getId()))){
                 throw new IllegalArgumentException("Неправильный пользователь");

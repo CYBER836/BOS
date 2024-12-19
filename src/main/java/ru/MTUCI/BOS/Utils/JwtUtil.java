@@ -48,13 +48,7 @@ public class JwtUtil {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList())
         );
-        /*
-        claims.put("role", ...) добавляет запись в claims с ключом "role".
-        userDetails.getAuthorities() получает коллекцию полномочий (ролей), предоставленных пользователю.
-        .stream() преобразует коллекцию полномочий в поток.
-        .map(GrantedAuthority::getAuthority) преобразует каждый объект GrantedAuthority в потоке в его строковое представление (имя полномочия/роли).
-        .collect(Collectors.toList()) собирает преобразованные элементы потока в список.
-         */
+
         return createToken(claims, userDetails.getUsername());
 
     }
