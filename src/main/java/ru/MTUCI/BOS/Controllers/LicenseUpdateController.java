@@ -22,22 +22,22 @@ public class LicenseUpdateController {
     private final LicenseService licenseService;
 
     @PostMapping("/update")
-    public ResponseEntity<?> update(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest, BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            String errMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.status(200).body("Ошибка валидации: " + errMsg);
+    public ResponseEntity<String> handleLicenseUpdate(@Valid @RequestBody LicenseUpdateRequest request, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            String errorMessage = Objects.requireNonNull(validationResult.getFieldError()).getDefaultMessage();
+            return ResponseEntity.ok("Validation error: " + errorMessage);
         }
 
-        try{
-            Ticket ticket = licenseService.updateExistentLicense(
-                    licenseUpdateRequest.getLicenseCode(),
-                    licenseUpdateRequest.getLogin(),
-                    licenseUpdateRequest.getMacAddress()
+        try {
+            Ticket updatedTicket = licenseService.updateExistentLicense(
+                    request.getLicenseCode(),
+                    request.getLogin(),
+                    request.getMacAddress()
             );
 
-            return ResponseEntity.status(200).body("Успешное обновление лицензии, тикет: " + ticket.toString());
-        } catch (IllegalArgumentException e){
-            return ResponseEntity.status(400).body(e.getMessage());
+            return ResponseEntity.ok("License updated successfully. Ticket: " + updatedTicket.toString());
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.status(400).body(exception.getMessage());
         }
     }
 }

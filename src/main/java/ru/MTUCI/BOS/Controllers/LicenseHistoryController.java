@@ -1,7 +1,8 @@
 package ru.MTUCI.BOS.Controllers;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,33 +13,30 @@ import java.util.List;
 
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 @RestController
-@RequestMapping("/license-history")
-@RequiredArgsConstructor
+@RequestMapping("/license-histories")
+@AllArgsConstructor
 public class LicenseHistoryController {
 
     private final LicenseHistoryService licenseHistoryService;
 
     @GetMapping
-    public ResponseEntity<List<LicenseHistory>> getAll() {
-        return ResponseEntity.status(200).body(licenseHistoryService.getAllLicenseHistories());
+    public ResponseEntity<List<LicenseHistory>> getAllLicenseHistories() {
+        List<LicenseHistory> histories = licenseHistoryService.getAllLicenseHistories();
+        return ResponseEntity.ok(histories);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getLicenseHistoryById(@PathVariable Long id) {
-        try{
-            return ResponseEntity.status(200).body(licenseHistoryService.getLicenseHistoryById(id));
-        } catch (Exception e){
-            return ResponseEntity.status(404).body("История с id: " + id + " не найдена");
+    public ResponseEntity<LicenseHistory> getLicenseHistoryById(@PathVariable @NotNull Long id) {
+        LicenseHistory history = licenseHistoryService.getLicenseHistoryById(id);
+        if (history == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(history);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteLicenseHistoryById(@PathVariable Long id){
-        try{
-            licenseHistoryService.deleteLicenseHistoryById(id);
-            return ResponseEntity.status(200).body("История с id: " + id + " удалена");
-        } catch (Exception e){
-            return ResponseEntity.status(404).body("История с id: " + id + " не найдена");
-        }
+    public ResponseEntity<Void> deleteLicenseHistoryById(@PathVariable @NotNull Long id) {
+        licenseHistoryService.deleteLicenseHistoryById(id);
+        return ResponseEntity.noContent().build();
     }
 }

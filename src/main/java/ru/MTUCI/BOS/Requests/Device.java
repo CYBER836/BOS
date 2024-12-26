@@ -44,14 +44,6 @@ public class Device {
     }
 
     public String getBody(){
-        return String.format(
-                "Device:\n" +
-                        "id: %d\n" +
-                        "name: %s\n" +
-                        "macAddress: %s\n" +
-                        "user: %s\n" +
-                        "deviceLicenses: %s\n",
-                id, name, macAddress, user, deviceLicenses
-        );
+        return String.format("%s", "");
     }
 }

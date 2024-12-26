@@ -3,8 +3,14 @@ package ru.MTUCI.BOS.Controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +24,8 @@ import ru.MTUCI.BOS.Requests.User;
 import ru.MTUCI.BOS.Services.UserService;
 import ru.MTUCI.BOS.Utils.JwtUtil;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -27,49 +35,76 @@ public class AuthenticationController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> userRegistration(@Valid @RequestBody RegistrationUserTransferObject userDTO, BindingResult bindingResult) {
+    public ResponseEntity<Map<String, Object>> registerUser(@Valid @RequestBody RegistrationUserTransferObject userDTO,
+                                                            BindingResult bindingResult) {
+        Map<String, Object> response = new HashMap<>();
+
         if (bindingResult.hasErrors()) {
-            String errMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.badRequest().body("Ошибка валидации: " + errMsg);
+            String errorMessage = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
+            response.put("error", "Ошибка валидации: " + errorMessage);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        if(userService.existsByLogin(userDTO.getLogin())){
-            return ResponseEntity.status(400).body("Ошибка валидации: пользователь с этим логином уже существует");
+        if (userService.checkIfLoginExists(userDTO.getLogin())) {
+            response.put("error", "Ошибка валидации: пользователь с таким логином уже существует");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        if(userService.existsByEmail(userDTO.getEmail())){
-            return ResponseEntity.status(400).body("Ошибка валидации: пользователь с такой почтой уже существует");
+        if (userService.checkIfEmailExists(userDTO.getEmail())) {
+            response.put("error", "Ошибка валидации: пользователь с такой электронной почтой уже существует");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        User user = new User(userDTO.getLogin(), passwordEncoder.encode(userDTO.getPassword()), userDTO.getEmail(), ROLE.ROLE_USER, null);
-        userService.saveUser(user);
+        User user = new User();
+        user.setLogin(userDTO.getLogin());
+        user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
+        user.setEmail(userDTO.getEmail());
+        user.setRole(ROLE.ROLE_USER);
 
-        String token = jwtUtil.generateToken(userService.loadUserByUsername(user.getUsername()));
+        userService.addNewUser(user);
 
-        return ResponseEntity.status(200).body("Регистрация пройдена, Токен: " + token);
+        String token = jwtUtil.generateToken(userDetailsService.loadUserByUsername(user.getLogin()));
+        response.put("token", token);
+        response.put("message", "Регистрация прошла успешно!");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> userLogin(@Valid @RequestBody LoginUserTransferObject userDTO, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()){
-            String errMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.status(200).body("Ошибка валидации: " + errMsg);
+    public ResponseEntity<Map<String, Object>> authenticateUser(@Valid @RequestBody LoginUserTransferObject userDTO,
+                                                                BindingResult bindingResult) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (bindingResult.hasErrors()) {
+            String errorMessage = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
+            response.put("error", "Ошибка валидации: " + errorMessage);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        User user = userService.findUserByLogin(userDTO.getLogin());
-
-        if(user == null){
-            return ResponseEntity.status(400).body("Ошибка валидации: пользователь не найден");
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    userDTO.getLogin(),
+                    userDTO.getPassword()
+            ));
+        } catch (DisabledException e) {
+            response.put("error", "Аккаунт заблокирован");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        } catch (BadCredentialsException e) {
+            response.put("error", "Неверный логин или пароль");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
 
-        if(!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())){
-            return ResponseEntity.status(400).body("Ошибка валидации: пароль неверный");
-        }
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getLogin());
+        final String token = jwtUtil.generateToken(userDetails);
 
-        String token = jwtUtil.generateToken(userService.loadUserByUsername(user.getUsername()));
-        return ResponseEntity.status(200).body("Логин пройден, Токен: " + token);
+        response.put("token", token);
+        response.put("message", "Вы вошли в систему");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

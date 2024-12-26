@@ -37,7 +37,7 @@ public class LicenseService{
             throw new IllegalArgumentException("Product не найден");
         }
 
-        User user = userService.getUserById(licenseRequest.getUserId());
+        User user = userService.fetchUserById(licenseRequest.getUserId());
         if(user == null){
             throw new IllegalArgumentException("User не найден");
         }
@@ -79,7 +79,7 @@ public class LicenseService{
             throw new IllegalArgumentException("Лицензия не найдена");
         }
 
-        User user = userService.findUserByLogin(login);
+        User user = userService.fetchUserByLogin(login);
         if(user == null){
             throw new IllegalArgumentException("Пользователь не найден");
         }
@@ -145,11 +145,14 @@ public class LicenseService{
         license.setEndingDate(new Date(license.getEndingDate().getTime() + license.getDuration()));
         licenseRepository.save(license);
 
-
         LicenseHistory licenseHistory = new LicenseHistory(license, license.getOwner(), "UPDATED", new Date(), "License updated");
         licenseHistoryService.saveLicenseHistory(licenseHistory);
 
-        return generateTicket(license, deviceRepository.findDeviceByMacAddress(macAddress));
+        // Извлекаем устройство из Optional
+        Device device = deviceRepository.findDeviceByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("Устройство не найдено"));
+
+        return generateTicket(license, device);
     }
 
 
@@ -169,7 +172,7 @@ public class LicenseService{
     }
 
     private void validateActivation(License license, Device device, String login) {
-        User user = userService.findUserByLogin(login);
+        User user = userService.fetchUserByLogin(login);
 
         if(license.getUser() != null){ // И теперь спереть лицуху не получится
             if(!(license.getUser().getId().equals(user.getId()))){
@@ -201,7 +204,7 @@ public class LicenseService{
         deviceLicense.setLicense(license);
         deviceLicense.setActivationDate(new Date());
 
-        deviceLicenseService.save(deviceLicense);
+        deviceLicenseService.saveDeviceLicense(deviceLicense); // Исправлено
     }
 
     private void updateLicenseForActivation(License license, User user) {

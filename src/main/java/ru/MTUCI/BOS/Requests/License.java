@@ -1,6 +1,5 @@
 package ru.MTUCI.BOS.Requests;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -102,17 +101,17 @@ public class License {
 
     public String getBody(){
         return String.format("License:\n" +
-                        "Code: %s\n" +
-                        "User: %s\n" +
-                        "Product: %s\n" +
-                        "Type: %s\n" +
-                        "First activation date: %s\n" +
-                        "Ending date: %s\n" +
-                        "Is blocked: %b\n" +
-                        "Devices count: %d\n" +
-                        "Owner: %s\n" +
-                        "Duration: %d\n" +
-                        "Description: %s\n",
+                        "Код: %s\n" +
+                        "Пользователь: %s\n" +
+                        "Продукт: %s\n" +
+                        "Тип: %s\n" +
+                        "Дата первой активации: %s\n" +
+                        "Дата окончания: %s\n" +
+                        "Заблокировано: %b\n" +
+                        "Количество устройств: %d\n" +
+                        "Владелец: %s\n" +
+                        "Продолжительность: %d\n" +
+                        "Описание: %s\n",
                 this.getCode(),
                 this.getUser().getLogin(),
                 this.getProduct().getName(),

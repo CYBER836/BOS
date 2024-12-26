@@ -38,7 +38,7 @@ public class LicenseInfoController {
 
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            User user = userService.findUserByLogin(authentication.getName());
+            User user = userService.fetchUserByLogin(authentication.getName());
 
             //Device device = deviceService.getDeviceByInfo(licenseInfoRequest.getMacAddress(), user);
             Device device = deviceService.getDeviceByMacAddress(licenseInfoRequest.getMacAddress());

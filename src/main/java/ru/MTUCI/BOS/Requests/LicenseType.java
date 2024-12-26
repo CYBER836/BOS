@@ -1,13 +1,10 @@
 package ru.MTUCI.BOS.Requests;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.List;
-
 @Entity
 @Getter
 @Setter
@@ -39,8 +36,11 @@ public class LicenseType {
         this.licenses = licenses;
     }
 
-    public LicenseType() {
+    public LicenseType() {}
 
+    // Новый конструктор для сообщения об ошибке
+    public LicenseType(String name, String message) {
+        this.name = name;
+        this.description = message;
     }
-
 }

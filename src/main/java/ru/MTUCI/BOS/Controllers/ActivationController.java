@@ -33,7 +33,7 @@ public class ActivationController {
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            User user = userService.findUserByLogin(authentication.getName());
+            User user = userService.fetchUserByLogin(authentication.getName());
 
             Device device = deviceService.registerOrUpdateDevice(activationRequest, user);
 

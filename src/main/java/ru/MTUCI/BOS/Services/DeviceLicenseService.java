@@ -20,7 +20,7 @@ public class DeviceLicenseService {
         return deviceLicenseRepository.getDeviceLicensesByLicense(license);
     }
 
-    public void save(DeviceLicense deviceLicense) {
+    public void saveDeviceLicense(DeviceLicense deviceLicense) {
         deviceLicenseRepository.save(deviceLicense);
     }
 

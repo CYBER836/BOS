@@ -12,8 +12,6 @@ import ru.MTUCI.BOS.Repositories.UserRepository;
 
 import java.util.List;
 
-
-
 @Service
 @RequiredArgsConstructor
 public class DeviceService {
@@ -22,23 +20,22 @@ public class DeviceService {
     private final UserRepository userRepository;
 
     public Device registerOrUpdateDevice(ActivationRequest activationRequest, User user) {
+        Device device = deviceRepository.findDeviceByMacAddress(activationRequest.getMacAddress())
+                .orElse(new Device()); // Создаем новый объект, если устройство не найдено
 
-        Device device = deviceRepository.getDeviceByMacAddress(activationRequest.getMacAddress());
-        if (device == null) {
-            device = new Device();
-            device.setMacAddress(activationRequest.getMacAddress());
-            device.setUser(user);
-        } else if (!device.getUser().equals(user)) {
+        if (device.getUser() != null && !device.getUser().equals(user)) {
             throw new IllegalArgumentException("Устройство зарегистрировано другим пользователем");
         }
 
+        device.setMacAddress(activationRequest.getMacAddress());
+        device.setUser(user);
         device.setName(activationRequest.getDeviceName());
 
         return deviceRepository.save(device);
     }
 
     public Device getDeviceByInfo(String macAddress, User user) {
-        return deviceRepository.findDeviceByMacAddressAndUser(macAddress, user);
+        return deviceRepository.findDeviceByMacAddressAndUser_Id(macAddress, user.getId()).orElse(null); // Возвращаем null, если устройство не найдено
     }
 
     public Device createDevice(DeviceRequest deviceRequest) {
@@ -74,6 +71,11 @@ public class DeviceService {
     }
 
     public Device getDeviceByMacAddress(String macAddress) {
-        return deviceRepository.findDeviceByMacAddress(macAddress);
+        return deviceRepository.findDeviceByMacAddress(macAddress)
+                .orElseThrow(() -> new IllegalArgumentException("Устройство не найдено"));
+    }
+
+    public Device getDeviceByMacAddressAndUser(String macAddress, User user) {
+        return deviceRepository.findDeviceByMacAddressAndUser_Id(macAddress, user.getId()).orElse(null); // Возвращаем null, если устройство не найдено
     }
 }

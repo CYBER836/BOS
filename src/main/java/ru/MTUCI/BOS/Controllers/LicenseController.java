@@ -1,17 +1,19 @@
 package ru.MTUCI.BOS.Controllers;
 
-
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import ru.MTUCI.BOS.Requests.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import ru.MTUCI.BOS.Requests.LicenseRequest;
 import ru.MTUCI.BOS.Services.LicenseService;
 
 @RestController
-@RequestMapping("/license")
+@RequestMapping("/licenses")
 public class LicenseController {
 
     private final LicenseService licenseService;
@@ -22,21 +24,20 @@ public class LicenseController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/create")
-    public ResponseEntity<?> createLicense(@Valid @RequestBody LicenseRequest licenseRequest) {
-        System.out.println("LicenseController: createLicense: Started creating license, data: " + licenseRequest.getDescription());
+    @PostMapping
+    public ResponseEntity<String> createLicense(@Valid @RequestBody LicenseRequest licenseRequest) {
+        System.out.printf("Creating a new license with description: %s%n", licenseRequest.getDescription());
 
         try {
-            License license = licenseService.createLicense(licenseRequest);
-
-            if (license == null) {
-                return ResponseEntity.badRequest().body("Failed to create license");
+            String licenseBody = String.valueOf(licenseService.createLicense(licenseRequest));
+            if (licenseBody != null) {
+                return ResponseEntity.ok("License created successfully.\nLicense body:\n" + licenseBody);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("An error occurred while creating the license.");
             }
-            return ResponseEntity.ok("License created successfully, License:\n" + license.getBody());
-
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
     }
 }

@@ -6,23 +6,22 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.MTUCI.BOS.Requests.ENUMS.ROLE;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@Entity
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Table(name = "users")
 @JsonIgnoreProperties({"licenses", "devices"})
 public class User implements UserDetails {
@@ -49,68 +48,28 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<License> licenses;
+    private List<License> licenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Device> devices;
+    private List<Device> devices = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<LicenseHistory> licenseHistories;
+    private List<LicenseHistory> licenseHistories = new ArrayList<>();
 
-    public User(Long id, String login, String passwordHash, String email, ROLE role, List<License> licenses) {
+    public User(Long id, String login, String passwordHash, String email, ROLE role) {
         this.id = id;
         this.login = login;
         this.passwordHash = passwordHash;
         this.email = email;
         this.role = role;
-        this.licenses = licenses;
     }
 
-    public User(String login, String passwordHash, String email, ROLE role, List<License> licenses, List<Device> devices, List<LicenseHistory> licenseHistories) {
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.email = email;
-        this.role = role;
-        this.licenses = licenses;
-        this.devices = devices;
-        this.licenseHistories = licenseHistories;
-    }
-
-    public User(String login, String passwordHash, String email, ROLE role, List<License> licenses) {
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.email = email;
-        this.role = role;
-        this.licenses = licenses;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
-    }
-
-    // TODO JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role.toString()));
+        return Collections.singleton(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -124,16 +83,22 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", login='" + login + '\'' +
-                ", passwordHash='" + passwordHash + '\'' +
-                ", email='" + email + '\'' +
-                ", role=" + role +
-                ", licenses=" + licenses +
-                ", devices=" + devices +
-                ", licenseHistories=" + licenseHistories + //
-                '}';
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

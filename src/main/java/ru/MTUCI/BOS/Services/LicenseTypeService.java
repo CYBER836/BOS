@@ -19,7 +19,7 @@ public class LicenseTypeService {
     }
 
     public LicenseType getLicenseTypeById(Long licenseTypeId) {
-        return licenseTypeRepository.getLicenseTypeById(licenseTypeId);
+        return licenseTypeRepository.findLicenseTypeById(licenseTypeId);
     }
 
     public LicenseType createLicenseType(LicenseTypeRequest licenseTypeRequest) {
@@ -48,5 +48,4 @@ public class LicenseTypeService {
     public List<LicenseType> getAllLicenseTypes() {
         return licenseTypeRepository.findAll();
     }
-
 }

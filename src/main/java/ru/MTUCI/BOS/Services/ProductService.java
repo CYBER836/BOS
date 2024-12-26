@@ -19,7 +19,7 @@ public class ProductService {
     }
 
     public Product getProductById(Long productId) {
-        return productRepository.getProductsById(productId);
+        return productRepository.findProductById(productId);
     }
 
     public Product createProduct(ProductRequest productRequest) {
@@ -46,6 +46,4 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
-
-
 }

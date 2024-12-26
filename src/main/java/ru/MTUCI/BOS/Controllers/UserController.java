@@ -25,15 +25,15 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/info/{id}")
-    public ResponseEntity<?> getUserInfo(@PathVariable Long id){
-        User user = userService.getUserById(id);
+    public ResponseEntity<?> getUserInfo(@PathVariable Long id) {
+        User user = userService.fetchUserById(id);
         return ResponseEntity.status(200).body("Пользователь: " + user.toString());
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/info")
-    public ResponseEntity<List<User>> getUserInfo(){
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<User>> getUserInfo() {
+        List<User> users = userService.fetchAllUsers();
         return ResponseEntity.status(200).body(users);
     }
 
@@ -41,10 +41,10 @@ public class UserController {
     public ResponseEntity<String> updateUser(@RequestBody UserRequest user, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             String findUsername = userDetails.getUsername();
-            User currentUser = userService.findUserByLogin(findUsername);
+            User currentUser = userService.fetchUserByLogin(findUsername);
 
             if (user.getLogin() != null && !user.getLogin().equals(currentUser.getLogin())) {
-                if (userService.existsByLogin(user.getLogin())) {
+                if (userService.checkIfLoginExists(user.getLogin())) {
                     return ResponseEntity.status(400).body("Ошибка: Логин уже используется");
                 }
 
@@ -52,7 +52,7 @@ public class UserController {
             }
 
             if (user.getEmail() != null && !user.getEmail().equals(currentUser.getEmail())) {
-                if (userService.existsByEmail(user.getEmail())) {
+                if (userService.checkIfEmailExists(user.getEmail())) {
                     return ResponseEntity.status(400).body("Ошибка: Email уже используется");
                 }
                 currentUser.setEmail(user.getEmail());
@@ -62,9 +62,9 @@ public class UserController {
                 currentUser.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             }
 
-            userService.saveUser(currentUser);
+            userService.addNewUser(currentUser);
 
-            return ResponseEntity.status(200).body("Польователь: " + currentUser.getLogin() + " успешно обновлен");
+            return ResponseEntity.status(200).body("Пользователь: " + currentUser.getLogin() + " успешно обновлен");
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Ошибка при обновлении пользователя");
@@ -73,13 +73,13 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id){
-        try{
-            User user = userService.getUserById(id);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            User user = userService.fetchUserById(id);
 
-            userService.deleteUser(id);
+            userService.removeUser(id);
             return ResponseEntity.status(200).body("Пользователь с id: " + id + " удален");
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Ошибка при удалении пользователя");
         }
     }

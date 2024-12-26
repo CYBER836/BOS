@@ -3,6 +3,7 @@ package ru.MTUCI.BOS.Controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -17,46 +18,48 @@ import java.util.Objects;
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 @RestController
 @RequestMapping("/devices")
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class DeviceController {
 
     private final DeviceService deviceService;
 
     @PostMapping
-    public ResponseEntity<?> createDevice(@Valid @RequestBody DeviceRequest deviceRequest, BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            String errMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.status(200).body("Ошибка валидации: " + errMsg);
+    public ResponseEntity<String> createDevice(@Valid @RequestBody DeviceRequest request, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessage = Objects.requireNonNull(result.getFieldError()).getDefaultMessage();
+            return ResponseEntity.badRequest().body(errorMessage);
         }
-        Device device = deviceService.createDevice(deviceRequest);
-        return ResponseEntity.status(200).body(device.toString());
+
+        Device createdDevice = deviceService.createDevice(request);
+        return ResponseEntity.ok(createdDevice.toString());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDevice(@PathVariable Long id){
+    public ResponseEntity<Device> getDeviceById(@PathVariable Long id) {
         Device device = deviceService.getDeviceById(id);
-        return ResponseEntity.status(200).body(device.toString());
+        return ResponseEntity.ok(device);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDevice(@PathVariable Long id, @Valid @RequestBody DeviceRequest deviceRequest, BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            String errMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
-            return ResponseEntity.status(200).body("Ошибка валидации: " + errMsg);
+    public ResponseEntity<String> updateDevice(@PathVariable Long id, @Valid @RequestBody DeviceRequest request, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessage = Objects.requireNonNull(result.getFieldError()).getDefaultMessage();
+            return ResponseEntity.badRequest().body(errorMessage);
         }
 
-        Device device = deviceService.updateDevice(id, deviceRequest);
-        return ResponseEntity.status(200).body(device.toString());
+        Device updatedDevice = deviceService.updateDevice(id, request);
+        return ResponseEntity.ok(updatedDevice.toString());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDevice(@PathVariable Long id){
+    public ResponseEntity<String> deleteDevice(@PathVariable Long id) {
         deviceService.deleteDevice(id);
-        return ResponseEntity.status(200).body("Устройство с id: " + id + " успешно удалено");
+        return ResponseEntity.ok("Устройство с id: " + id + " успешно удалено");
     }
 
     @GetMapping
-    public ResponseEntity<List<Device>> getAllDevices(){
-        return ResponseEntity.status(200).body(deviceService.getAllDevices());
+    public ResponseEntity<List<Device>> getAllDevices() {
+        List<Device> devices = deviceService.getAllDevices();
+        return ResponseEntity.ok(devices);
     }
 }
